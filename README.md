@@ -1,3 +1,3 @@
 # GLAnimPlayground
 
-Forked from my GLRagdoll demo to work add a bunch of animation related shit.
+Forked from my GLRagdoll demo to add a bunch of animation related shit.
