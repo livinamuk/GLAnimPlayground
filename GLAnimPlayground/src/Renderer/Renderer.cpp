@@ -79,6 +79,11 @@ void Renderer::RenderFrame(std::vector<GameCharacter>& gameCharacters, Entity& c
 
     RenderFinalImage();
 
+
+    s_solid_color_shader.use();
+    for (GameCharacter& gameCharacter : gameCharacters)
+        RenderJointAxis(&s_solid_color_shader, &gameCharacter);
+
     // Bullet Debug
     if (Input::s_showBulletDebug) {
         s_solid_color_shader.use();
@@ -170,17 +175,18 @@ void Renderer::RenderFinalImage()
     glBindVertexArray(0);
 }
 
-/*
+
 void Renderer::RenderJointAxis(Shader* shader, GameCharacter* gameCharacter)
 {
     for (int i = 0; i < gameCharacter->m_animatedDebugTransforms_Animated.size(); i++)
     {
         glm::mat4 boneMatrix = gameCharacter->m_animatedDebugTransforms_Animated[i];
         DrawTangentDebugAxis(shader, gameCharacter->m_transform.to_mat4() * boneMatrix, 0.05f);
+        DrawPoint(shader, Util::GetTranslationFromMatrix(gameCharacter->m_transform.to_mat4() * boneMatrix), glm::vec3(1, 0, 0));
     }
-}*/
+}
 
-/*
+
 void Renderer::DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength)
 {
     static unsigned int VAO = 0;
@@ -221,8 +227,8 @@ void Renderer::DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 6);
 }
-*/
-/*
+
+
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
 {
     static unsigned int VAO = 0;
@@ -251,4 +257,4 @@ void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
     shader->setMat4("model", Transform(position).to_mat4());
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, 1);
-}*/
+}

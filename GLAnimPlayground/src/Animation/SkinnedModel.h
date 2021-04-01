@@ -23,7 +23,7 @@ public:
 
     std::vector<Animation*> m_animations;
 
-    void BoneTransform(float Time, std::vector<glm::mat4>& Transforms, std::vector<glm::mat4>& DebugAnimatedTransforms);
+    void BoneTransform(float Time, unsigned int animIndex, std::vector<glm::mat4>& Transforms, std::vector<glm::mat4>& DebugAnimatedTransforms);
    
 
 public:

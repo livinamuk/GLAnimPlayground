@@ -23,7 +23,7 @@ bool Input::s_leftMouseDown = false;
 bool Input::s_rightMouseDown = false;
 bool Input::s_leftMouseDownLastFrame = false;
 bool Input::s_rightMouseDownLastFrame = false;
-bool Input::s_showBulletDebug = false;
+bool Input::s_showBulletDebug = true;
 	
 void Input::MouseUpdate(double xpos, double ypos)
 {

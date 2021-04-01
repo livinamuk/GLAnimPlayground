@@ -18,15 +18,13 @@ public: // functions
 	static void Init();
 	static void RenderFrame(std::vector<GameCharacter>& gameCharacters, Entity& couch, Camera* camera);
 	static void DrawGrid(Shader* shader);
-	//static void DrawCouch(Shader* shader);
 	static void RenderFinalImage();
 	static void TextBlitterPass(Shader* shader);
 	static void DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix);
 	static void HotLoadShaders();
-	//static void DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength);
-	//static void DrawAnimatedEntityDebugBones_Animated(Shader* shader, Ragdoll* ragdoll);
+	static void DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength);
+	static void DrawAnimatedEntityDebugBones_Animated(Shader* shader, Ragdoll* ragdoll);
 	static void DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color);
-	//static void NewGameCharacter();
 	static void RenderJointAxis(Shader*, GameCharacter* gameCharacter);
 
 public: // variables

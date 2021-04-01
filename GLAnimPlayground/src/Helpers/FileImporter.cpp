@@ -42,7 +42,7 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
     std::string filepath = "res/models/";
     filepath += filename;
 
-    const aiScene* tempScene = m_Importer.ReadFile(filepath.c_str(), aiProcess_LimitBoneWeights | aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+    const aiScene* tempScene = m_Importer.ReadFile(filepath.c_str(), aiProcess_LimitBoneWeights  | aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
     // aiProcess_OptimizeMeshes USE WITH BELOW 
     // aiProcess_OptimizeGraph 
@@ -315,6 +315,8 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
         std::cout << "Could not load: " << Filename << "\n";
         assert(0);
     }
+    else
+    std::cout << "Loaded animation: " << Filename << "\n";
 
     // Success
     m_pAnimationScene = new aiScene(*tempAnimScene);

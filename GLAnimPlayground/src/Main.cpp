@@ -27,7 +27,7 @@
 void ResetScene();
 void NewRagdoll();
 std::vector<GameCharacter> gameCharacters; // each character has a ragdoll
-
+SkinnedModel* nurseModel;
 
 /////////////////////
 //   Entry Point   //
@@ -49,7 +49,14 @@ int main()
     couchEntity.UpdateCollisionObject();
 
     float lastFrame = CoreGL::GetGLTime();
+
+    nurseModel = FileImporter::LoadSkinnedModel("NurseGuy.fbx");
+    FileImporter::LoadAnimation(nurseModel, "NursdeGuyShotgunIdle.fbx");
+
+    std::cout << "ANIMS: " << nurseModel->m_animations.size() << "\n";
+
     ResetScene();
+
 
     ///////////////////////
     //   Main game loop  //
@@ -98,11 +105,25 @@ int main()
 
         // Text to blit...
         TextBlitter::BlitLine("Ray Hit: " + Util::PhysicsObjectEnumToString(raycastResult.m_objectType));
-        TextBlitter::BlitLine("Space: spawn ragdoll");
+       /* TextBlitter::BlitLine("Space: spawn ragdoll");
         TextBlitter::BlitLine("B: toggle debug view");
         TextBlitter::BlitLine("Left click: shoot");
         TextBlitter::BlitLine("R: reset scene");
-        TextBlitter::BlitLine("WSAD: walk");
+        TextBlitter::BlitLine("WSAD: walk");*/
+
+        TextBlitter::BlitLine("Anim time: " + std::to_string(gameCharacters[0].m_animationState.currentTime));
+
+        // Update animations
+        for (GameCharacter& gameCharacter : gameCharacters)
+        {   
+            if (gameCharacter.m_skinningMethod == SkinningMethod::ANIMATED)
+                gameCharacter.UpdateAnimation(deltaTime);
+        }
+
+
+   //     std::cout << "anim cout: " << gameCharacters[0].m_skinnedModel->m_animations.size() << "\n";
+  //      std::cout << "anim index: " << gameCharacters[0].m_skinnedModel->currentAnimationIndex << "\n";
+
 
         // RENDER FRAME
         Renderer::RenderFrame(gameCharacters, couchEntity, &camera);
@@ -120,10 +141,10 @@ void ResetScene()
         gameCharacters.erase(gameCharacters.begin());
     }
     GameCharacter gameCharacter;
-    gameCharacter.m_transform.position = glm::vec3(0, 0, -0.5f);
-    gameCharacter.m_skinnedModel = FileImporter::LoadSkinnedModel("NurseGuy.fbx");
+    gameCharacter.m_transform.position = glm::vec3(0, 0, 0.0f);
+    gameCharacter.m_skinnedModel = nurseModel;;
     gameCharacter.m_ragdoll.BuildFromJsonFile("ragdoll.json", gameCharacter.m_transform);
-    gameCharacter.m_skinningMethod = SkinningMethod::RAGDOLL;
+    gameCharacter.m_skinningMethod = SkinningMethod::ANIMATED;
     gameCharacters.push_back(gameCharacter);
 }
 
@@ -134,7 +155,7 @@ void NewRagdoll()
     gameCharacter.m_transform.rotation.x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
     gameCharacter.m_transform.rotation.y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
     gameCharacter.m_transform.rotation.z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
-    gameCharacter.m_skinnedModel = FileImporter::LoadSkinnedModel("NurseGuy.fbx");
+    gameCharacter.m_skinnedModel = nurseModel;
     gameCharacter.m_ragdoll.BuildFromJsonFile("ragdoll.json", gameCharacter.m_transform);
     gameCharacter.m_skinningMethod = SkinningMethod::RAGDOLL;
     gameCharacters.push_back(gameCharacter);

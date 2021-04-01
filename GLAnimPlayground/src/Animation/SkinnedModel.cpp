@@ -28,6 +28,8 @@ void SkinnedModel::Render(Shader* shader, const glm::mat4& modelMatrix)
 
 void SkinnedModel::UpdateBoneTransform(std::vector<glm::mat4>& Transforms, std::vector<glm::mat4>& DebugAnimatedTransforms, Ragdoll* ragdoll)
 {
+    return;
+
     // Traverse the tree 
     for (int i = 0; i < m_skeleton.m_joints.size(); i++)
     {
@@ -131,6 +133,9 @@ void SkinnedModel::CalcInterpolatedScaling(glm::vec3& Out, float AnimationTime, 
     int Index = FindAnimatedNodeIndex(AnimationTime, animatedNode);
     int NextIndex = (Index + 1);
 
+  //  std::cout << "scale index:     " << Index << "\n";
+ //   std::cout << "scale NextIndex: " << NextIndex << "\n";
+
     // Nothing to report
     if (Index == -1 || animatedNode->m_nodeKeys.size() == 1) {
         Out = glm::vec3(animatedNode->m_nodeKeys[0].scale);
@@ -143,11 +148,24 @@ void SkinnedModel::CalcInterpolatedScaling(glm::vec3& Out, float AnimationTime, 
     glm::vec3 end = glm::vec3(animatedNode->m_nodeKeys[NextIndex].scale);
     glm::vec3 delta = end - start;
     Out = start + Factor * delta;
+
+/*
+    std::cout << "m_nodeKeys.size():     " << animatedNode->m_nodeKeys.size() << "\n";
+    std::cout << "timestamp:     " << animatedNode->m_nodeKeys[Index].timeStamp << "\n";
+
+    std::cout << "DeltaTime:     " << DeltaTime << "\n";
+    std::cout << "Factor: " << Factor << "\n";
+    std::cout << "start:   " << start.x << ", " << start.y << ", " << start.z << "\n";
+    std::cout << "end:     " << end.x << ", " << end.y << ", " << end.z << "\n";
+    std::cout << "delta:   " << delta.x << ", " << delta.y << ", " << delta.z << "\n";
+    */
 }
 
 
-void SkinnedModel::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Transforms, std::vector<glm::mat4>& DebugAnimatedTransforms)
+void SkinnedModel::BoneTransform(float AnimationTime, unsigned int animIndex, std::vector<glm::mat4>& Transforms, std::vector<glm::mat4>& DebugAnimatedTransforms)
 {
+  /*  float TimeInSeconds = 0.24f;
+
     // Get the animation time
     float AnimationTime = 0;
     if (m_animations.size() > 0) {
@@ -157,23 +175,35 @@ void SkinnedModel::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tr
         float TimeInTicks = TimeInSeconds * TicksPerSecond;
         AnimationTime = fmod(TimeInTicks, animation->m_duration);
     }
-
+   // std::cout << "\n" << m_filename << "\n";
+    
+    */
+    std::vector<glm::mat4> tempParentFinalTransforms;
+    for (int i = 0; i < m_skeleton.m_joints.size(); i++)
+        tempParentFinalTransforms.push_back(glm::mat4(1));
 
     // Traverse the tree 
     for (int i = 0; i < m_skeleton.m_joints.size(); i++)
     {
+        if (m_skeleton.m_joints.size() == 90)
+        {
+       //     std::cout << "\ni: " << i << "\n";
+        }
+
         // Get the node and its um bind pose transform?
         const char* NodeName = m_skeleton.m_joints[i].m_name;
+     //   std::cout << "NodeName " << NodeName << "\n";
         glm::mat4 NodeTransformation = m_skeleton.m_joints[i].m_inverseBindTransform;
 
         // Calculate any animation
         if (m_animations.size() > 0)
         {
-            const AnimatedNode* animatedNode = FindAnimatedNode(m_animations[currentAnimationIndex], NodeName);
+             const AnimatedNode* animatedNode = FindAnimatedNode(m_animations[currentAnimationIndex], NodeName);
 
             if (animatedNode)
             {
                 glm::vec3 Scaling;
+
                 CalcInterpolatedScaling(Scaling, AnimationTime, animatedNode);
                 glm::mat4 ScalingM;
 
@@ -183,27 +213,50 @@ void SkinnedModel::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tr
                 glm::mat4 RotationM(RotationQ);
 
                 glm::vec3 Translation;
-                CalcInterpolatedPosition(Translation, AnimationTime, animatedNode);     
+                CalcInterpolatedPosition(Translation, AnimationTime, animatedNode);
                 glm::mat4 TranslationM;
 
                 TranslationM = Util::Mat4InitTranslationTransform(Translation.x, Translation.y, Translation.z);
                 NodeTransformation = TranslationM * RotationM * ScalingM;
+/*
+                std::cout << "ScalingM\n";
+
+                Util::PrintVec3(Scaling);// Util::PrintMat4(ScalingM);
+                std::cout << "RotationQ\n";
+                std::cout << "(" << RotationQ.x << ", " << RotationQ.y << ", " << RotationQ.z << ", " << RotationQ.w << "\n";
+                Util::PrintVec3(Translation);
+           
+            std::cout << "TranslationM\n";
+
+            Util::PrintVec3(Scaling);// Util::PrintMat4(ScalingM);*/
             }
         }
-        unsigned int parentIndex = m_skeleton.m_joints[i].m_parentIndex;
-
-        glm::mat4 ParentTransformation = (parentIndex == -1) ? glm::mat4(1) : m_skeleton.m_joints[parentIndex].m_currentFinalTransform;
+        int parentIndex = m_skeleton.m_joints[i].m_parentIndex;
+  //    std::cout << "parentIndex " << parentIndex << "\n";
+//
+        glm::mat4 ParentTransformation = (parentIndex == -1) ? glm::mat4(1) : tempParentFinalTransforms[parentIndex];
+        /*
+        std::cout << "Node Transform\n";
+        Util::PrintMat4(NodeTransformation);
+        std::cout << "Parent Transform\n";
+        Util::PrintMat4(ParentTransformation);*/
+        
         glm::mat4 GlobalTransformation = ParentTransformation * NodeTransformation;
 
-        // Store the current transformation, so child nodes can access it
-        m_skeleton.m_joints[i].m_currentFinalTransform = GlobalTransformation;
+        tempParentFinalTransforms[i] = GlobalTransformation;
 
-
+       /* if (parentIndex == 4) {
+            std::cout << "i " << i << "\n";
+            std::cout << "parentIndex " << parentIndex << "\n";
+            Util::PrintMat4(NodeTransformation);
+        }
+        */
         if (m_BoneMapping.find(NodeName) != m_BoneMapping.end()) {
             unsigned int BoneIndex = m_BoneMapping[NodeName];
             m_BoneInfo[BoneIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[BoneIndex].BoneOffset;
-            m_BoneInfo[BoneIndex].ModelSpace_AnimatedTransform = GlobalTransformation ;
+            m_BoneInfo[BoneIndex].ModelSpace_AnimatedTransform = GlobalTransformation;
 
+ 
             // If there is no bind pose, then just use bind pose
             // ???? How about you check if this does anything useful ever ????
             if (m_animations.size() == 0) {
@@ -217,14 +270,101 @@ void SkinnedModel::BoneTransform(float TimeInSeconds, std::vector<glm::mat4>& Tr
         Transforms[i] = m_BoneInfo[i].FinalTransformation;
         DebugAnimatedTransforms[i] = m_BoneInfo[i].ModelSpace_AnimatedTransform;
     }
+    /*animIndex = 0;
+    animationTime = 1;
+
+    // Traverse the tree 
+    for (int i = 0; i < m_skeleton.m_joints.size(); i++)
+    {
+        // Get the node and its um bind pose transform?
+        const char* NodeName = m_skeleton.m_joints[i].m_name;
+        glm::mat4 NodeTransformation = m_skeleton.m_joints[i].m_inverseBindTransform;
+
+        // Calculate any animation
+
+       // if (m_skeleton.m_joints.size() > 0 &&  m_skeleton.m_joints[i].m_parentIndex == 0)
+        if (m_animations.size() > 0)// if (m_animations.size() > 0)
+        {
+
+            const AnimatedNode* animatedNode = FindAnimatedNode(m_animations[animIndex], NodeName);
+
+
+            if (i == 1)
+                std::cout << "node name: " << NodeName << "\n";
+
+           
+
+
+            if (animatedNode) {
+                glm::vec3 Scaling;
+                CalcInterpolatedScaling(Scaling, animationTime, animatedNode);
+                glm::mat4 ScalingM;
+                ScalingM = Util::Mat4InitScaleTransform(Scaling.x, Scaling.y, Scaling.z);
+                glm::quat RotationQ;
+                CalcInterpolatedRotation(RotationQ, animationTime, animatedNode);
+                glm::mat4 RotationM(RotationQ);
+                glm::vec3 Translation;
+                CalcInterpolatedPosition(Translation, animationTime, animatedNode);
+                glm::mat4 TranslationM;
+                TranslationM = Util::Mat4InitTranslationTransform(Translation.x, Translation.y, Translation.z);
+                NodeTransformation = TranslationM * RotationM * ScalingM;
+
+
+                if (i == 1)
+                    Util::PrintMat4(TranslationM);
+
+            }
+            else
+                if (i == 1)
+                    std::cout << "node name: " << NodeName << " is unaanimated\n";
+
+
+        }
+        unsigned int parentIndex = m_skeleton.m_joints[i].m_parentIndex;
+        glm::mat4 ParentTransformation = (parentIndex == -1) ? glm::mat4(1) : m_skeleton.m_joints[parentIndex].m_currentFinalTransform;
+        glm::mat4 GlobalTransformation = ParentTransformation * NodeTransformation;
+
+        // Store the current transformation, so child nodes can access it
+        m_skeleton.m_joints[i].m_currentFinalTransform = GlobalTransformation;
+
+        if (m_BoneMapping.find(NodeName) != m_BoneMapping.end()) {
+            unsigned int BoneIndex = m_BoneMapping[NodeName];
+            m_BoneInfo[BoneIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[BoneIndex].BoneOffset;
+            m_BoneInfo[BoneIndex].ModelSpace_AnimatedTransform = GlobalTransformation;
+
+            // If there is no bind pose, then just use bind pose
+            // ???? How about you check if this does anything useful ever ????
+            if (m_animations.size() == 0) {
+                m_BoneInfo[BoneIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[BoneIndex].BoneOffset;
+                m_BoneInfo[BoneIndex].ModelSpace_AnimatedTransform = GlobalTransformation;
+            }
+        }
+    }
+
+    for (unsigned int i = 0; i < m_NumBones; i++) {
+        Transforms[i] = m_BoneInfo[i].FinalTransformation;
+        DebugAnimatedTransforms[i] = m_BoneInfo[i].ModelSpace_AnimatedTransform;
+    } */
 }
+
+
+
 
 const AnimatedNode* SkinnedModel::FindAnimatedNode(Animation* animation, const char* NodeName)
 {
+   /* std::cout << "\n";
+    std::cout << "\n";
+    std::cout << "\n";
+
+
+    std::cout << "there are " << animation->m_animatedNodes.size() << " animatedn nodes. They are: \n";
+*/
     for (unsigned int i = 0; i < animation->m_animatedNodes.size(); i++) {
         const AnimatedNode* animatedNode = &animation->m_animatedNodes[i];
+      //  std::cout << " " << animation->m_animatedNodes[i].m_nodeName << " with " << animation->m_animatedNodes[i].m_nodeKeys.size() << " keys \n"; 
 
         if (Util::StrCmp(animatedNode->m_nodeName, NodeName)) {
+        //    std::cout << "YOU FOUND THIS MATCH INCORECTRLY PROBABLY: " << NodeName << "\n";
             return animatedNode;
         }
     }
